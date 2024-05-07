@@ -9,21 +9,23 @@ RQ (Redis Queue) is a simple Clojure package for queueing jobs and processing th
 
 ```clojure
 (ns rq.example
-  (:require [com.moclojer.rq.core :as rq]))
+  (:require [clj-rq.core :as rq]
+            [clj-rq.queue :as queue]
+            [clj-rq.pubsub :as pubsub]))
 
 (def redis-client (rq/redis-client "redis://localhost:6379/0"))
 
 ;; queue: type connect
-(def q (rq/queue redis-client "my-queue"))
+(def q (queue/connection redis-client "my-queue"))
 
 ;; queue: rpush
-(rq/producer q {:foo "bar"})
-(rq/producer q {:foo "bar"} :at ... :in ... :retry 3 :retry-delay 10)
+(queue/producer q {:foo "bar"})
+(queue/producer q {:foo "bar"} :at ... :in ... :retry 3 :retry-delay 10)
 
 ;; queue: blpop
-(rq/consumer q (fn [job] (println job))
+(queue/consumer q (fn [job] (println job))
 
 ;; pub/sub
-(rq/publish redis-client "name-subs" "value set")
-(rq/subscribe redis-client ["name-subs"])
+(pubsub/publish redis-client "name-subs" "value set")
+(pubsub/subscribe redis-client ["name-subs"])
 ```
