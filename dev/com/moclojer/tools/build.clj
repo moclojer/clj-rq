@@ -42,7 +42,7 @@
      :target     "target"
      :src-dirs   (:paths basis)
      :pom-data   pom-template
-     :exclude    ["docs/*" "META-INF/*" "test/*" "target/*"]}))
+     :exclude    ["docs/*" "test/*" "target/*"]}))
 
 (defn -main
   [& _]

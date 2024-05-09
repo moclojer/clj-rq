@@ -41,7 +41,7 @@
    :exec-fn deps-deploy.deps-deploy/deploy
    :exec-args {:installer :remote
                :sign-releases? true
-               :pom-file "target/classes/META-INF/maven/com.moclojer.rq/pom.xml"
+               :pom-file "target/classes/META-INF/maven/com.moclojer/rq/pom.xml"
                :artifact "target/com.moclojer.rq.jar"}}}}
   
   
