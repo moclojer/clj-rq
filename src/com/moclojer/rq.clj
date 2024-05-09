@@ -1,4 +1,5 @@
 (ns com.moclojer.rq
+  (:require [com.moclojer.rq.pubsub :as pubsub])
   (:import [redis.clients.jedis JedisPooled]))
 
 (def version "0.1.0")
@@ -25,3 +26,10 @@
   "redis disconnect client"
   []
   (.returnResource @*redis-pool*))
+
+(defn -main
+  [& _]
+  (let [redis-client (JedisPooled. "redis://localhost:6379/0")]
+    ;; (println "redis-client" (.getPubSub redis-client))
+    (pubsub/publish redis-client "name-subs" "value set")
+    (pubsub/subscribe redis-client "name-subs")))
