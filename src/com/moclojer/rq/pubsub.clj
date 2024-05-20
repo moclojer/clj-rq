@@ -17,16 +17,9 @@
         (catch Exception e
           (ex-message e) nil)))))
 
-;; (defn make-pubsub
-;;   [redis-client]
-;;   (doto (JedisPubSub.)
-;;     (.client redis-client)))
-
 ;; (pubsub/subscribe redis-client ["name-subs"])
 (defn subscribe
-  "Subscribe to a channel"
+  "Subscribe to channels and call the callback function when a message is received
+   is possible to subscribe to multiple channels"
   [redis-client on-msg-fn channels]
-  ;; chamar o metodo `.subscribe` do jedis nessa função, passando os parametros necessarios
-  ;; (.subscribe redis-client (make-pubsub) channels)
-
   (.subscribe @redis-client (listener on-msg-fn) (into-array channels)))
