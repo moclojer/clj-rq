@@ -9,13 +9,13 @@
 
 (defn listener
   [callback]
-  (try
-    (proxy [JedisPubSub] []
-      (onMessage [channel message]
+  (proxy [JedisPubSub] []
+    (onMessage [channel message]
+      (try
         (println "onMessage" channel message)
-        (callback channel message)))
-    (catch Exception e
-      (ex-message e) nil)))
+        (callback channel message)
+        (catch Exception e
+          (ex-message e) nil)))))
 
 ;; (defn make-pubsub
 ;;   [redis-client]
@@ -25,8 +25,8 @@
 ;; (pubsub/subscribe redis-client ["name-subs"])
 (defn subscribe
   "Subscribe to a channel"
-  [redis-client channels]
+  [redis-client on-msg-fn channels]
   ;; chamar o metodo `.subscribe` do jedis nessa função, passando os parametros necessarios
   ;; (.subscribe redis-client (make-pubsub) channels)
 
-  (.subscribe redis-client (listener (fn [channel message] (println "channel" channel "message" message))) channels))
+  (.subscribe @redis-client (listener on-msg-fn) (into-array channels)))

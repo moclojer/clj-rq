@@ -18,3 +18,4 @@ pom.xml.asc
 output.calva-repl
 # emacs
 *~
+/.clj-kondo
