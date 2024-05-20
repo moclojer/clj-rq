@@ -43,8 +43,5 @@
   (def pooled-client (redis-client "redis://localhost:6379"))
 
   (pubsub/subscribe pooled-client #(prn :chan %1 :msg %2) ["hello.world" "bye.world"])
-
-  (def pool-client (JedisPool.))
-
   ;;
   )

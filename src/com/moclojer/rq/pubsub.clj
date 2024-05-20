@@ -5,7 +5,7 @@
 (defn publish
   "Publish a message to a channel"
   [redis-client channel message]
-  (.publish redis-client channel message))
+  (.publish @redis-client channel message))
 
 (defn listener
   [callback]
