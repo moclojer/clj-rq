@@ -8,12 +8,12 @@
   (.publish @redis-client channel message))
 
 (defn listener
-  [callback]
+  [on-msg-fn]
   (proxy [JedisPubSub] []
     (onMessage [channel message]
       (try
         (println "onMessage" channel message)
-        (callback channel message)
+        (on-msg-fn channel message)
         (catch Exception e
           (ex-message e) nil)))))
 
