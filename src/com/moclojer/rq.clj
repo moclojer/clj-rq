@@ -1,5 +1,5 @@
 (ns com.moclojer.rq
-  (:require [com.moclojer.rq.pubsub :as pubsub])
+  (:require [com.moclojer.rq.queue :as queue])
   (:import [redis.clients.jedis JedisPooled]))
 
 (def version "0.1.0")
@@ -30,5 +30,7 @@
 (defn -main
   [& _]
   (redis-client "redis://localhost:6379")
-  (pubsub/publish *redis-pool* "hello.world" "value set")
-  (pubsub/subscribe *redis-pool* #(prn :chan %1 :msg %2) ["hello.world"]))
+  (queue/producer *redis-pool* "my-queue" {:foo "bar"})
+  (queue/consumer *redis-pool* "my-queue" 0)
+  #_(pubsub/publish *redis-pool* "hello.world" "value set")
+  #_(pubsub/subscribe *redis-pool* #(prn :chan %1 :msg %2) ["hello.world"]))
