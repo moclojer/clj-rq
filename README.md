@@ -4,7 +4,7 @@ RQ (Redis Queue) is a simple Clojure package for queueing jobs and processing th
 
 > "simple is better than complex" - [The Zen of Python](https://peps.python.org/pep-0020/)
 
-## exemple
+## example
 
 ```clojure
 (ns rq.example
