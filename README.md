@@ -4,28 +4,25 @@ RQ (Redis Queue) is a simple Clojure package for queueing jobs and processing th
 
 > "simple is better than complex" - [The Zen of Python](https://peps.python.org/pep-0020/)
 
-
 ## exemple
 
 ```clojure
 (ns rq.example
-  (:require [clj-rq.core :as rq]
+  (:require [clj-rq.rq :as rq]
             [clj-rq.queue :as queue]
             [clj-rq.pubsub :as pubsub]))
 
-(def redis-client (rq/redis-client "redis://localhost:6379/0"))
+(rq/client "redis://localhost:6379/0")
 
-;; queue: type connect
-(def q (queue/connection redis-client "my-queue"))
-
-;; queue: rpush
-(queue/producer q {:foo "bar"})
-(queue/producer q {:foo "bar"} :at ... :in ... :retry 3 :retry-delay 10)
-
-;; queue: blpop
-(queue/consumer q (fn [job] (println job))
+;; queue
+(queue/producer rq/*redis-pool* "my-queue" {:now (java.time.LocalDateTime/now)
+                                            :foo "bar"})
+(println :size (queue/consumer-size *redis-pool* "my-queue"))
+(queue/consumer rq/*redis-pool* "my-queue" #(prn :msg %1))
 
 ;; pub/sub
 (pubsub/publish redis-client "name-subs" "value set")
 (pubsub/subscribe redis-client ["name-subs"])
+(pubsub/publish *redis-pool* "name-subs" "value set")
+(pubsub/subscribe *redis-pool* #(prn :chan %1 :msg %2) ["name-subs"])
 ```
