@@ -16,7 +16,7 @@ RQ (Redis Queue) is a simple Clojure package for queueing jobs and processing th
 
 ;; queue
 (queue/producer *redis-pool* "my-queue" {:now (java.time.LocalDateTime/now)
-                                            :foo "bar"})
+                                         :foo "bar"})
 (println :size (queue/consumer-size *redis-pool* "my-queue"))
 (queue/consumer *redis-pool* "my-queue" #(prn :msg %1))
 
