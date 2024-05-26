@@ -27,10 +27,12 @@
   []
   (.returnResource @*redis-pool*))
 
-(defn -main
-  [& _]
+(comment
   (redis-client "redis://localhost:6379")
-  (queue/producer *redis-pool* "my-queue" {:foo "bar"})
-  (queue/consumer *redis-pool* "my-queue" 0)
+  (queue/producer *redis-pool* "my-queue" {:now (java.time.LocalDateTime/now)
+                                           :foo "bar"})
+  (println :size (queue/consumer-size *redis-pool* "my-queue"))
+  (queue/consumer *redis-pool* "my-queue" #(prn :msg %1))
+
   #_(pubsub/publish *redis-pool* "hello.world" "value set")
   #_(pubsub/subscribe *redis-pool* #(prn :chan %1 :msg %2) ["hello.world"]))
