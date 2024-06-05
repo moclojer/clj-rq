@@ -8,6 +8,10 @@ on:
 jobs:
     clojars:
         runs-on: ubuntu-latest
+        environment: env
+        defaults:
+            run:
+                shell: bash
         steps:
             - uses: actions/checkout@v4
             - uses: "DeLaGuardo/setup-clojure@12.5"
