@@ -1,6 +1,9 @@
 (ns com.moclojer.rq
-  (:require [com.moclojer.rq.queue :as queue])
-  (:import [redis.clients.jedis JedisPooled]))
+  (:require
+   [com.moclojer.rq.pubsub :as pubsub]
+   [com.moclojer.rq.queue :as queue])
+  (:import
+   [redis.clients.jedis JedisPooled]))
 
 (def version "0.1.1")
 
@@ -9,39 +12,46 @@
   ^{:private true :dynamic true}
   *redis-pool* (ref nil))
 
-(defn client
+(defn create-client
   "redis connect client"
-  [url]
-  (when-not @*redis-pool*
-    (dosync
-     (ref-set *redis-pool* (JedisPooled. url))))
-  *redis-pool*)
+  ([url]
+   (create-client url false))
+  ([url ref?]
+   (let [pool (JedisPooled. url)]
+     (if (and ref? (not @*redis-pool*))
+       (dosync
+        (ref-set *redis-pool* pool)
+        *redis-pool*)
+       (atom pool)))))
 
-(defn client-kill
-  "redis kill client"
-  []
-  (.destroy @*redis-pool*))
-
-(defn client-disconnect
-  "redis disconnect client"
-  []
-  (.returnResource @*redis-pool*))
-
-(defn -main
-  [& _]
-  (client "redis://localhost:6379")
-  (queue/producer *redis-pool* "my-queue" {:now (java.time.LocalDateTime/now)
-                                           :foo "bar"})
-  (println :size (queue/consumer-size *redis-pool* "my-queue"))
-  (queue/consumer *redis-pool* "my-queue" #(prn :msg %1)))
-
+(defn close-client
+  "redis close client"
+  ([] (close-client *redis-pool*))
+  ([client] (.close @client)))
 
 (comment
-  (client "redis://localhost:6379")
-  (queue/producer *redis-pool* "my-queue" {:now (java.time.LocalDateTime/now)
-                                           :foo "bar"})
-  (println :size (queue/consumer-size *redis-pool* "my-queue"))
-  (queue/consumer *redis-pool* "my-queue" #(prn :msg %1))
+  (let [client (create-client "redis://localhost:6379")]
+    (queue/push! client "my-queue" {:user/name "john"
+                                    :user/surname "doe"
+                                    :user/age 24})
+    (let [popped (queue/pop! client "my-queue")]
+      (close-client client)
+      popped))
+  ;; => #:user{:name "john", :surname "doe", :age 24}
 
-  #_(pubsub/publish *redis-pool* "hello.world" "value set")
-  #_(pubsub/subscribe *redis-pool* #(prn :chan %1 :msg %2) ["hello.world"]))
+  (let [client (create-client "redis://localhost:6379")]
+    (pubsub/subscribe! client #(prn :channel %1 :received %2)
+                       ["my-channel" "my-other-channel"])
+    (Thread/sleep 1000)
+    (dotimes [_ 10]
+      (pubsub/publish! client "my-channel"
+                       {:topic/id :created-user
+                        :user/id 123
+                        :user/name "john doe"})
+      (pubsub/publish! client "my-other-channel"
+                       {:hello :bye
+                        :try 2
+                        :user-count 5}))
+    (close-client client))
+  ;;
+  )
