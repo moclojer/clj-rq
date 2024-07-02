@@ -1,7 +1,6 @@
 {:paths   ["src"]
  :deps
- {redis.clients/jedis {:mvn/version "5.1.2"}
-  org.clojure/core.async {:mvn/version "1.6.681"}}
+ {redis.clients/jedis {:mvn/version "5.1.2"}}
 
  :aliases
  {;; clj -A:dev -m com.moclojer.rq
