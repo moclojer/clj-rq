@@ -1,6 +1,5 @@
 (ns com.moclojer.rq.queue
   (:require
-   [clojure.core.async :as async]
    [clojure.edn :as edn]
    [com.moclojer.rq.utils :as utils]))
 
@@ -69,50 +68,4 @@
       (.close @client)
       queue-length))
   ;; => 3
-  )
-
-(defn wait-and-consume!
-  "returns the channel, which can be closed with async/close!"
-  [client queue-name consume-fn & options]
-  (let [{:keys [direction pattern sleep-time buffer-size]
-         :or {direction  :l
-              pattern    :rq
-              sleep-time 200
-              buffer-size 1024}} options
-        chan (async/chan (async/sliding-buffer buffer-size))]
-
-    ;; wait and retrieve messages
-    (async/go-loop []
-      (when (.isConnected @client)
-        (if-let [?message (pop! client queue-name
-                                :direction direction
-                                :pattern pattern)]
-          (do
-            (Thread/sleep sleep-time)
-            (when (async/>! chan ?message)
-              (recur)))
-          (recur))))
-
-    ;; now consume them
-    (async/go-loop []
-      (when-let [?message (async/<! chan)]
-        (consume-fn ?message)
-        (recur)))
-
-    chan))
-
-(comment
-  (import redis.clients.jedis.JedisPooled)
-
-  (let [client (atom (JedisPooled. "redis://localhost:6379"))
-        chan (wait-and-consume! client "my-queue" #(prn :new-message %))]
-    (Thread/sleep 1000)
-    (push! client "my-queue" {:hello 1})
-    (Thread/sleep 250)
-    (push! client "my-queue" {:hello 2})
-    (Thread/sleep 2000)
-    (push! client "my-queue" {:hello 3})
-    (.close! chan)
-    (.close @client))
-  ;;
   )
