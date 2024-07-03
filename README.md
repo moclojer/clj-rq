@@ -27,6 +27,37 @@ RQ (Redis Queue) is a simple Clojure package for queueing jobs and processing th
 (rq/close-client *redis-pool*)
 ```
 
+The workflow in the given example can be represented as follows:
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Client
+    participant Queue
+    participant PubSub
+    participant Logger
+
+    User->>Client: create-client URL
+    Client-->>Logger: log client creation
+    Client-->>User: return client
+
+    User->>Queue: push! message
+    Queue-->>Logger: log push message
+    Queue-->>Queue: push message to queue
+
+    User->>PubSub: publish! channel, message
+    PubSub-->>Logger: log publish message
+    PubSub-->>PubSub: publish message to channel
+
+    User->>Queue: pop! queue-name
+    Queue-->>Logger: log pop operation
+    Queue-->>User: return popped message
+
+    User->>Client: close-client client
+    Client-->>Logger: log closing client
+    Client-->>User: confirm client closure
+```
+
 ## installation
 
 We distribute the library via [Clojars](https://clojars.org/com.moclojer/rq).
