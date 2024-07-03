@@ -5,7 +5,7 @@
    [com.moclojer.rq.utils :as utils]))
 
 (defn push!
-  "Push a messagem into a queue"
+  "Push a message into a queue"
   [client queue-name message & options]
   (let [{:keys [direction pattern _at _in _retry _retry-delay]
          :or {direction :l
