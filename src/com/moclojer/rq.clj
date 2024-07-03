@@ -1,7 +1,4 @@
 (ns com.moclojer.rq
-  (:require
-   [com.moclojer.rq.pubsub :as pubsub]
-   [com.moclojer.rq.queue :as queue])
   (:import
    [redis.clients.jedis JedisPooled]))
 
@@ -13,7 +10,8 @@
   *redis-pool* (ref nil))
 
 (defn create-client
-  "redis connect client"
+  "Connect to redis client. If `ref?` is true, will save the created instance
+  in the global var `*redis-pool*. Just returns the created instance otherwise."
   ([url]
    (create-client url false))
   ([url ref?]
@@ -25,6 +23,6 @@
        (atom pool)))))
 
 (defn close-client
-  "redis close client"
+  "Disconnect and close redis client"
   ([] (close-client *redis-pool*))
   ([client] (.close @client)))
