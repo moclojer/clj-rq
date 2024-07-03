@@ -12,17 +12,19 @@ RQ (Redis Queue) is a simple Clojure package for queueing jobs and processing th
             [com.moclojer.rq.queue :as queue]
             [com.moclojer.rq.pubsub :as pubsub]))
 
-(def *redis-pool* (rq/client "redis://localhost:6379/0"))
+(def *redis-pool* (rq/create-client "redis://localhost:6379/0"))
 
 ;; queue
-(queue/producer *redis-pool* "my-queue" {:now (java.time.LocalDateTime/now)
-                                         :foo "bar"})
-(println :size (queue/consumer-size *redis-pool* "my-queue"))
-(queue/consumer *redis-pool* "my-queue" #(prn :msg %1))
+(queue/push! *redis-pool* "my-queue" {:now (java.time.LocalDateTime/now)
+                                      :foo "bar"})
+(println :size (queue/llen *redis-pool* "my-queue"))
+(prn :popped (queue/pop! *redis-pool* "my-queue"))
 
 ;; pub/sub
-(pubsub/publish *redis-pool* "name-subs" "value set")
-(pubsub/subscribe *redis-pool* #(prn :chan %1 :msg %2) ["name-subs"])
+(pubsub/subscribe! *redis-pool* #(prn :chan %1 :msg %2) ["name-subs"])
+(pubsub/publish! *redis-pool* "name-subs" {:hello true)})
+
+(rq/close-client *redis-pool*)
 ```
 
 ## installation
