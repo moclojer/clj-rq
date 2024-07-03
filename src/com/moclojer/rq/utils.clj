@@ -25,7 +25,7 @@
   ;; => "rq:my-queue"
 
   (pack-pattern :pending "foobar")
-  ;; => "rq:pendingfoobar"
+  ;; => "rq:pending:foobar"
 
   (unpack-pattern :pending "rq:pending:foobar")
   ;; => "foobar"
