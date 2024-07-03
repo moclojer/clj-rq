@@ -24,15 +24,6 @@
 
     pushed-count))
 
-(comment
-  (import redis.clients.jedis.JedisPooled)
-
-  (let [client (atom (JedisPooled. "redis://localhost:6379"))]
-    (push! client "my-queue" {:hello true} :direction :l)
-    (.close @client))
-  ;;
-  )
-
 (defn pop!
   [client queue-name & options]
   (let [{:keys [direction pattern]
@@ -51,36 +42,9 @@
 
     (edn/read-string message)))
 
-(comment
-  (import redis.clients.jedis.JedisPooled)
-
-  (let [client (atom (JedisPooled. "redis://localhost:6379"))]
-    (push! client "my-queue" {:hello true} :direction :r)
-    (let [popped-val (pop! client "my-queue" :direction :r)]
-      (.close @client)
-      popped-val))
-  ;; => {:hello true}
-  )
-
 (defn llen
   "get size of a queue"
   [client queue-name & options]
   (let [{:keys [pattern]
          :or {pattern :rq}} options]
     (.llen @client (utils/pack-pattern pattern queue-name))))
-
-(comment
-  (import redis.clients.jedis.JedisPooled)
-
-  (let [client (atom (JedisPooled. "redis://localhost:6379"))]
-    (push! client "my-queue" {:hello 1} :direction :r)
-    (push! client "my-queue" {:hello 2} :direction :r)
-    (push! client "my-queue" {:hello 3} :direction :r)
-    (let [queue-length (llen client "my-queue")]
-      (pop! client "my-queue" :direction :r)
-      (pop! client "my-queue" :direction :r)
-      (pop! client "my-queue" :direction :r)
-      (.close @client)
-      queue-length))
-  ;; => 3
-  )
