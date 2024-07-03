@@ -21,4 +21,4 @@ output.calva-repl
 *~
 /.clj-kondo
 .envrc
-/docker
+redis
