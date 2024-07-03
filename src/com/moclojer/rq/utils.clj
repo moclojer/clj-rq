@@ -16,9 +16,7 @@
 
 (defn unpack-pattern
   [pattern queue-name]
-  (apply str (-> (pattern->str pattern)
-                 (count)
-                 (drop queue-name))))
+  (subs queue-name (count (pattern->str pattern))))
 
 (comment
   (pack-pattern :rq "my-queue")
