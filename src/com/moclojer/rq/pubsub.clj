@@ -1,6 +1,7 @@
 (ns com.moclojer.rq.pubsub
   (:require
-   [clojure.edn :as edn])
+   [clojure.edn :as edn]
+   [clojure.tools.loggings :as log])
   (:import
    [redis.clients.jedis JedisPubSub]))
 
@@ -8,20 +9,30 @@
 (defn publish!
   "Publish a message to a channel"
   [client channel message]
-  (.publish @client channel (pr-str message)))
+  (let [consumer-count (.publish @client channel (pr-str message))]
+
+    (log/debug "published to channel"
+               {:channel channel
+                :message message
+                :consumer-count consumer-count})
+
+    consumer-count))
 
 (defn create-listener
   [on-msg-fn]
   (proxy [JedisPubSub] []
     (onMessage [channel message]
       (try
-        ;; TODO: switch for a logger
-        (println "onMessage" channel message)
+        (log/info "consumed from channel"
+                  {:channel channel
+                   :message message})
         (on-msg-fn channel (edn/read-string message))
         (catch Exception e
           (.printStackTrace e)
-          ;; TODO: switch for a logger
-          (prn :error (ex-message e)))))))
+          (log/error "failed to consume from channel"
+                     {:channel channel
+                      :message message
+                      :exception e}))))))
 
 (defn subscribe!
   "Subscribe to channels and call the callback function when a message is received
