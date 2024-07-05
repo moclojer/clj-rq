@@ -93,11 +93,6 @@
   [workers]
   (map #(update % :channel (partial utils/pack-pattern :pubsub)) workers))
 
-(comment
-  (pack-workers-channels [{:channel "my-channel"}])
-  ;;
-  )
-
 (defn subscribe!
   "Subscribe given `workers` to their respective channels.
   
@@ -139,28 +134,3 @@
           (Thread/sleep reconnect-sleep))))
 
     listener))
-
-(comment
-  (import redis.clients.jedis.JedisPooled)
-
-  (def my-client (atom (JedisPooled. "redis://localhost:6379")))
-
-  (unarquive-channel! my-client "my-channel" #(prn :hello %))
-
-  (subscribe! my-client [{:channel "my-channel"
-                          :handler #(prn :my-channel %)}])
-
-  (publish! my-client "my-channel" {:hello false})
-
-  #_(let [client]
-      (prn :listener (subscribe! client [{:channel "my-channel"
-                                          :handler #(prn :my-channel %)}
-                                         {:channel "my-other-channel"
-                                          :handler #(prn :my-other-channel %)}]))
-      (Thread/sleep 1000)
-      (prn :1 (publish! client "my-channel" {:hello true}))
-      (prn :2 (publish! client "my-other-channel" {:hello false}))
-      (Thread/sleep 1000)
-      (.close @client))
-  ;;
-  )
