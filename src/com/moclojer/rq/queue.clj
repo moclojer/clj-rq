@@ -7,13 +7,10 @@
 (defn push!
   "Push a message into a queue.
   
-  Parameters:
-  - client: Redis client
-  - queue-name: Name of the queue
-  - message: Message to be pushed
-  - options: Optional parameters, including:
-    - direction: Direction to push the message (:l or :r)
-    - pattern: Pattern for the queue name"
+  Options:
+
+  - direction: Direction to push the message (:l or :r)
+  - pattern: Pattern for the queue name"
   [client queue-name message & options]
   (let [{:keys [direction pattern _at _in _retry _retry-delay]
          :or {direction :l
@@ -37,12 +34,10 @@
 (defn pop!
   "Pop a message from a queue.
   
-  Parameters:
-  - client: Redis client
-  - queue-name: Name of the queue
-  - options: Optional parameters, including:
-    - direction: Direction to pop the message (:l or :r)
-    - pattern: Pattern for the queue name"
+  Options:
+
+  - direction: Direction to pop the message (:l or :r)
+  - pattern: Pattern for the queue name"
   [client queue-name & options]
   (let [{:keys [direction pattern]
          :or {direction :l
@@ -59,7 +54,8 @@
                 :options opts
                 :message message})
 
-    (edn/read-string message)))
+    (when message
+      (edn/read-string message))))
 
 (defn llen
   "Get the size of a queue.
