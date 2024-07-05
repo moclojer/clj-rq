@@ -2,8 +2,10 @@
 
 (defn- pattern->str
   [pattern]
-  (let [patterns {:rq "rq:"
-                  :pending "rq:pending:"}]
+  (let [patterns {:none ""
+                  :rq "rq:"
+                  :pubsub "rq:pubsub:"
+                  :pending "rq:pubsub:pending:"}]
     (or (get-in patterns [pattern])
         (throw (ex-info (str "No pattern named " pattern)
                         {:cause :illegal-argument
