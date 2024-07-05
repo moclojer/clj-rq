@@ -1,6 +1,8 @@
 (ns com.moclojer.rq.utils)
 
 (defn- pattern->str
+  "Adapts given pattern keyword to a know internal pattern. Raises
+  an exception if invalid."
   [pattern]
   (let [patterns {:none ""
                   :rq "rq:"
@@ -19,14 +21,3 @@
 (defn unpack-pattern
   [pattern queue-name]
   (subs queue-name (count (pattern->str pattern))))
-
-(comment
-  (pack-pattern :rq "my-queue")
-  ;; => "rq:my-queue"
-
-  (pack-pattern :pending "foobar")
-  ;; => "rq:pending:foobar"
-
-  (unpack-pattern :pending "rq:pending:foobar")
-  ;; => "foobar"
-  )
