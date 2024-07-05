@@ -128,12 +128,10 @@
     (future
       (try
         (.subscribe @client listener (into-array packed-channels))
-        (prn :hmmm packed-channels opts)
         (log/debug "subscribed workers to channels"
                    {:channels packed-channels
                     :options opts})
         (catch JedisConnectionException e
-          (prn :e (.getMessage e))
           (log/warn "subscriber connection got killed. trying to reconnect..."
                     {:channels packed-channels
                      :exception e
