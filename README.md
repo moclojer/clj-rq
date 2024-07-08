@@ -4,6 +4,18 @@ RQ (Redis Queue) is a simple Clojure package for queueing jobs and processing th
 
 > "simple is better than complex" - [The Zen of Python](https://peps.python.org/pep-0020/)
 
+## installation
+
+We distribute the library via [Clojars](https://clojars.org/com.moclojer/rq).
+
+```edn
+com.moclojer/rq {:mvn/version "0.1.2"}
+```
+
+```clojure
+[com.moclojer/rq "0.1.2"]
+```
+
 ## example
 
 ```clojure
@@ -56,16 +68,4 @@ sequenceDiagram
     User->>Client: close-client client
     Client-->>Logger: log closing client
     Client-->>User: confirm client closure
-```
-
-## installation
-
-We distribute the library via [Clojars](https://clojars.org/com.moclojer/rq).
-
-```edn
-com.moclojer/rq {:mvn/version "0.1.0"}
-```
-
-```clojure
-[com.moclojer/rq "0.1.0"]
 ```
