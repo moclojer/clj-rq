@@ -14,7 +14,8 @@
      :msgs messages
      :workers (map (fn [[chan msg]]
                      {:channel chan
-                      :handler #(swap! state conj msg)})
+                      :handler (fn [_]
+                                 (swap! state conj msg))})
                    chans-msgs)}))
 
 (t/deftest pubsub-test
