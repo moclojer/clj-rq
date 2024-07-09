@@ -8,13 +8,18 @@ RQ (Redis Queue) is a simple Clojure package for queueing jobs and processing th
 
 We distribute the library via [Clojars](https://clojars.org/com.moclojer/rq).
 
+
+[![Clojars Project](https://img.shields.io/clojars/v/com.moclojer/rq.svg)](https://clojars.org/com.moclojer/rq)
+
 ```edn
-com.moclojer/rq {:mvn/version "0.1.3"}
+com.moclojer/rq {:mvn/version "0.x.x"}
 ```
 
 ```clojure
-[com.moclojer/rq "0.1.3"]
+[com.moclojer/rq "0.x.x"]
 ```
+
+> see the versions distributed on clojars
 
 ## example
 
