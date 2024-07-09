@@ -106,13 +106,15 @@
   Options:
 
   - reconnect-sleep: Time to sleep before reconnecting, right after an
-                     abrupt or unexpected disconnection."
+                     abrupt or unexpected disconnection.
+  - blocking?: Whether or not to block the current thread."
   [client workers & options]
   (let [packed-workers (pack-workers-channels workers)
         packed-channels (vec (map :channel packed-workers))
         listener (create-listener packed-workers)
-        {:keys [reconnect-sleep]
-         :or {reconnect-sleep 2500}
+        {:keys [reconnect-sleep blocking?]
+         :or {reconnect-sleep 2500
+              blocking? false}
          :as opts} options]
 
     (doseq [channel (map :channel workers)]
@@ -120,17 +122,20 @@
                           #(.onMessage listener
                                        (utils/pack-pattern :pubsub channel) %)))
 
-    (future
-      (try
-        (.subscribe @client listener (into-array packed-channels))
-        (log/debug "subscribed workers to channels"
-                   {:channels packed-channels
-                    :options opts})
-        (catch JedisConnectionException e
-          (log/warn "subscriber connection got killed. trying to reconnect..."
-                    {:channels packed-channels
-                     :exception e
-                     :ex-message (.getMessage e)})
-          (Thread/sleep reconnect-sleep))))
+    (let [sub-fn #(try
+                    (.subscribe @client listener (into-array packed-channels))
+                    (log/debug "subscribed workers to channels"
+                               {:channels packed-channels
+                                :options opts})
+                    (catch JedisConnectionException e
+                      (log/warn "subscriber connection got killed. trying to reconnect..."
+                                {:channels packed-channels
+                                 :exception e
+                                 :ex-message (.getMessage e)})
+                      (Thread/sleep reconnect-sleep)
+                      (apply subscribe! [client workers options])))]
+      (if blocking?
+        (sub-fn)
+        (future (sub-fn))))
 
     listener))
