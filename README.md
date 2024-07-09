@@ -9,11 +9,11 @@ RQ (Redis Queue) is a simple Clojure package for queueing jobs and processing th
 We distribute the library via [Clojars](https://clojars.org/com.moclojer/rq).
 
 ```edn
-com.moclojer/rq {:mvn/version "0.1.2"}
+com.moclojer/rq {:mvn/version "0.1.3"}
 ```
 
 ```clojure
-[com.moclojer/rq "0.1.2"]
+[com.moclojer/rq "0.1.3"]
 ```
 
 ## example
@@ -33,8 +33,19 @@ com.moclojer/rq {:mvn/version "0.1.2"}
 (prn :popped (queue/pop! *redis-pool* "my-queue"))
 
 ;; pub/sub
-(pubsub/subscribe! *redis-pool* #(prn :chan %1 :msg %2) ["name-subs"])
-(pubsub/publish! *redis-pool* "name-subs" {:hello true)})
+(def my-workers
+  [{:channel "my-channel"
+    :handler (fn [msg]
+               (prn :msg :my-channel msg))}
+   {:channel "my-other-channel"
+    :handler (fn [{:keys [my data hello]}]
+               (my-function my data hello))}])
+
+(pubsub/subscribe! *redis-pool* my-workers)
+(pubsub/publish! *redis-pool* "my-channel" "hello world")
+(pubsub/publish! *redis-pool* "my-other-channel" {:my "moclojer team"
+                                                  :data "app.moclojer.com"
+                                                  :hello "maybe you'll like this website"})
 
 (rq/close-client *redis-pool*)
 ```
