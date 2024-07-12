@@ -3,6 +3,7 @@
 RQ (Redis Queue) is a simple Clojure package for queueing jobs and processing them in the background with workers. It is backed by Redis and it is designed to have a low barrier to entry, inspired by [python-rq](https://python-rq.org).
 
 > "simple is better than complex" - [The Zen of Python](https://peps.python.org/pep-0020/)
+> clj-rq arose from the need to simplify the use of the redis queue feature used in the [SaaS version of moclojer](https://app.moclojer.com), [here's](https://www.reddit.com/r/Clojure/comments/1d1567t/redis_queue_in_clojure/) a more detailed explanation of the motivation *(a thread that generated controversy)*
 
 ## installation
 
