@@ -51,18 +51,12 @@
                   {:channel channel
                    :message message})
         (if-let [handler-fn (get handlers-by-channel channel)]
-          (try
-            (handler-fn (if (string? message)
-                          (edn/read-string message)
-                          message))
-            (catch Exception e
-              (.printStackTrace e)
-              (log/error "failed to consume from channel"
-                         {:channel channel
-                          :message message
-                          :exception e})))
+          (handler-fn (if (string? message)
+                        (edn/read-string message)
+                        message))
           (log/error "no worker handler found for channel"
                      {:channel channel
+                      :channels (keys handlers-by-channel)
                       :message message}))))))
 
 (defn unarquive-channel!
@@ -85,9 +79,9 @@
                         :exception e
                         :ex-message (.getMessage e)})))
         (recur (inc message-count)))
-      (log/debug "unarchived channel"
-                 {:channel channel
-                  :message-count message-count}))))
+      (log/info "unarchived channel"
+                {:channel channel
+                 :message-count message-count}))))
 
 (defn pack-workers-channels
   [workers]
@@ -119,8 +113,7 @@
 
     (doseq [channel (map :channel workers)]
       (unarquive-channel! client channel
-                          #(.onMessage listener
-                                       (utils/pack-pattern :pubsub channel) %)))
+                          #(.onMessage listener (utils/pack-pattern :pubsub channel) %)))
 
     (let [sub-fn #(try
                     (.subscribe @client listener (into-array packed-channels))
