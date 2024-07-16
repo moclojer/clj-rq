@@ -23,21 +23,34 @@
 
     (t/testing "archiving/unarchiving"
       (let [channel (str (random-uuid))
-            message (utils/gen-message)]
+            message (utils/gen-message)
+            state (atom nil)]
         (rq-pubsub/publish! client channel message)
         (Thread/sleep 500)
-        (t/is
-         message
-         (rq-pubsub/unarquive-channel! client channel identity))))
+        (rq-pubsub/unarquive-channel! client channel (fn [msg]
+                                                       (reset! state msg)))
+        (t/is (= message @state))))
+
+    (t/testing "unarchiving after subscribing"
+      (let [channel (str (random-uuid))
+            message (utils/gen-message)
+            state (atom nil)]
+        (rq-pubsub/publish! client channel message)
+        (rq-pubsub/publish! client channel message)
+        (rq-pubsub/subscribe! client [{:channel channel
+                                       :handler (fn [msg]
+                                                  (swap! state conj msg))}])
+        (Thread/sleep 1000)
+        (t/is (= (repeatedly 2 (constantly message)) @state))))
 
     (t/testing "multi pub/sub"
       (let [state (atom [])
-            {:keys [chans-msgs messages workers]} (build-workers 1 state)]
+            {:keys [chans-msgs msgs workers]} (build-workers 5 state)]
         (rq-pubsub/subscribe! client workers)
         (Thread/sleep 500)
         (doseq [[chan msg] chans-msgs]
           (rq-pubsub/publish! client chan msg))
         (Thread/sleep 1000)
-        (t/is @state messages)))
+        (t/is (= msgs @state))))
 
     (rq/close-client client)))

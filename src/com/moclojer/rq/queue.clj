@@ -1,4 +1,5 @@
 (ns com.moclojer.rq.queue
+  (:refer-clojure :exclude [pop!])
   (:require
    [clojure.edn :as edn]
    [clojure.tools.logging :as log]
@@ -48,13 +49,14 @@
                   (.lpop @client packed-queue-name)
                   (.rpop @client packed-queue-name))]
 
-    (log/debug "popped from queue"
-               {:client client
-                :queue-name packed-queue-name
-                :options opts
-                :message message})
-
     (when message
+
+      (log/debug "popped from queue"
+                 {:client client
+                  :queue-name packed-queue-name
+                  :options opts
+                  :message message})
+
       (edn/read-string message))))
 
 (defn llen
