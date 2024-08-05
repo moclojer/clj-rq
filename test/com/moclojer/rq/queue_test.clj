@@ -24,4 +24,10 @@
       (rq-queue/push! client queue-name message :pattern :pending)
       (t/is (= message (rq-queue/pop! client queue-name :pattern :pending))))
 
+    ;; TODO
+    (t/testing "block" 
+      (rq-queue/bpop! client queue-name 10000 message)
+      (t/is (= message (rq-queue/pop! client queue-name message)))
+      )
+
     (rq/close-client client)))
