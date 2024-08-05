@@ -18,6 +18,8 @@
                                  (swap! state conj msg))})
                    chans-msgs)}))
 
+
+;;
 (t/deftest pubsub-test
   (let [client (rq/create-client "redis://localhost:6379")]
 
