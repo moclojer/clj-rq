@@ -31,7 +31,7 @@
                 :options opts
                 :pushed-count pushed-count})
 
-   pushed-count))
+    pushed-count))
 
 (defn pop!
   "Pop a message from a queue.
@@ -73,7 +73,7 @@
   (let [{:keys [pattern]
          :or {pattern :rq}} options
         packed-queue-name (utils/pack-pattern pattern queue-name)]
-    (.llen @client packed-queue-name)))  
+    (.llen @client packed-queue-name)))
 
 (defn bpop!
   "Pop a message from a queue. Blocking if necessary.
@@ -100,7 +100,7 @@
                     :message message})
         (edn/read-string message)))))
 
-(defn lrange 
+(defn lrange
   "Return an entire range given min and max indexes
   
   Parameters:
@@ -127,7 +127,7 @@
          :or {pattern :rq}} options
         packed-queue-name (utils/pack-pattern pattern queue-name)
         result (.lindex @client packed-queue-name index)]
-    
+
     (let [message (clojure.edn/read-string result)]
       (log/debug "message found"
                  {:client client
@@ -160,8 +160,7 @@
                 :return return})
     return))
 
-
-(defn lrem 
+(defn lrem
   "Removes a specified occurance of the message given (if any)
   
   Parameters:
@@ -173,21 +172,20 @@
     count < 0: Remove elements equal to element moving from tail to head.
     count = 0: Remove all elements equal to element."
   [client queue-name cnt msg & options]
-   (let [{:keys [pattern]
+  (let [{:keys [pattern]
          :or {pattern :rq}} options
         packed-queue-name (utils/pack-pattern pattern queue-name)
         return (.lrem @client packed-queue-name cnt (str msg))]
 
-     (log/debug "removed from queue"
-                {:client client
-                 :queue-name queue-name
-                 :msg (clojure.edn/read-string (str msg))
-                 :count cnt               
-                 :return return})
-     return))
+    (log/debug "removed from queue"
+               {:client client
+                :queue-name queue-name
+                :msg (clojure.edn/read-string (str msg))
+                :count cnt
+                :return return})
+    return))
 
-
-(defn linsert 
+(defn linsert
   "Insert a message before the first occurance of a pivot given.
 
   Parameters:
@@ -201,7 +199,7 @@
       - after: insert the message after the pivot"
   [client queue-name msg pivot & options]
   (let [{:keys [pos pattern]
-         :or {pos :before 
+         :or {pos :before
               pattern :rq} :as opts} options
         packed-queue-name (utils/pack-pattern pattern queue-name)
         encoded-message (str (clojure.edn/read-string (str msg)))
@@ -215,7 +213,6 @@
                 :opts opts
                 :return return})
     return))
-
 
 (defn ltrim
   "Trim a list to the specified range.

@@ -26,7 +26,6 @@
       (rq-queue/push! client queue-name message :pattern :pending)
       (t/is (= message (rq-queue/pop! client queue-name :pattern :pending))))
 
-
     (t/testing "bpop! left"
       (while (not (nil? (rq-queue/bpop! client queue-name 1 {:direction :l}))))
       (rq-queue/push! client queue-name message)
@@ -54,8 +53,7 @@
       (rq-queue/lset client queue-name 1 message)
       (t/is (= message (rq-queue/lindex client queue-name 1)))
       (rq-queue/pop! client queue-name :direction :l)
-      (rq-queue/pop! client queue-name :direction :l)
-      )
+      (rq-queue/pop! client queue-name :direction :l))
     (t/testing "lrem"
       (rq-queue/push! client queue-name message)
       (rq-queue/lrem client queue-name 1 message)
