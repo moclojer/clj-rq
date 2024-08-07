@@ -3,7 +3,8 @@
   (:require
    [clojure.edn :as edn]
    [clojure.tools.logging :as log]
-   [com.moclojer.rq.utils :as utils]))
+   [com.moclojer.rq.utils :as utils]
+   [clojure.string :as s]))
 
 (defn push!
   "Push a message into a queue.
@@ -30,7 +31,7 @@
                 :options opts
                 :pushed-count pushed-count})
 
-    pushed-count))
+   pushed-count))
 
 (defn pop!
   "Pop a message from a queue.
@@ -110,8 +111,9 @@
   [client queue-name floor ceil & options]
   (let [{:keys [pattern]
          :or {pattern :rq}} options
-        packed-queue (utils/pack-pattern pattern queue-name)]
-    (.lrange @client packed-queue floor ceil)))
+        packed-queue (utils/pack-pattern pattern queue-name)
+        result (.lrange @client packed-queue floor ceil)]
+    result))
 
 (defn lindex
   "Return a element in a specified index
@@ -123,21 +125,40 @@
   [client queue-name index & options]
   (let [{:keys [pattern]
          :or {pattern :rq}} options
-        packed-queue (utils/pack-pattern pattern queue-name)]
-    (.lindex @client packed-queue index)))
+        packed-queue-name (utils/pack-pattern pattern queue-name)
+        result (.lindex @client packed-queue-name index)]
+    
+    (let [message (clojure.edn/read-string result)]
+      (log/debug "message found"
+                 {:client client
+                  :queue-name packed-queue-name
+                  :index index
+                  :message message})
+      message)))
 
 (defn lset
-  "Set a new message in the specified index
-  
+  "Set a new message in a specified index
+
   Parameters:
   - client: Redis client
   - queue-name: Name of the queue
   - index: specific index to access
-  - msg: new msg to be added"
-  [client queue-name index msg & {:keys [pattern]
-                                  :or {pattern :rq}}]
-  (let [packed-queue-name (utils/pack-pattern pattern queue-name)]
-    (.lset @client packed-queue-name index msg)))
+  - message: new msg to be added"
+  [client queue-name index message & options]
+  (let [{:keys [pattern]
+         :or {pattern :rq} :as opts} options
+        packed-queue-name (utils/pack-pattern pattern queue-name)
+        encoded-message (clojure.edn/read-string (str message))
+        return (.lset @client packed-queue-name index (str encoded-message))]
+
+    (log/debug "set in queue"
+               {:client client
+                :queue-name packed-queue-name
+                :message (str encoded-message)
+                :index index
+                :options opts
+                :return return})
+    return))
 
 
 (defn lrem 
@@ -154,8 +175,16 @@
   [client queue-name cnt msg & options]
    (let [{:keys [pattern]
          :or {pattern :rq}} options
-        packed-queue-name (utils/pack-pattern pattern queue-name)]
-    (.lrem @client packed-queue-name cnt msg)))
+        packed-queue-name (utils/pack-pattern pattern queue-name)
+        return (.lrem @client packed-queue-name cnt (str msg))]
+
+     (log/debug "removed from queue"
+                {:client client
+                 :queue-name queue-name
+                 :msg (clojure.edn/read-string (str msg))
+                 :count cnt               
+                 :return return})
+     return))
 
 
 (defn linsert 
@@ -173,9 +202,19 @@
   [client queue-name msg pivot & options]
   (let [{:keys [pos pattern]
          :or {pos :before 
-              pattern :rq}} options
-        packed-queue-name (utils/pack-pattern pattern queue-name)]
-    (.linsert @client packed-queue-name pos pivot msg)))
+              pattern :rq} :as opts} options
+        packed-queue-name (utils/pack-pattern pattern queue-name)
+        encoded-message (str (clojure.edn/read-string (str msg)))
+        encoded-pivot (str (clojure.edn/read-string (str pivot)))
+        encoded-pos (str (s/capitalize (str pivot)))
+        return (.linsert @client packed-queue-name encoded-pos encoded-pivot encoded-message)]
+    (log/debug "inserted in queue"
+               {:client client
+                :queue-name queue-name
+                :msg (clojure.edn/read-string (str msg))
+                :opts opts
+                :return return})
+    return))
 
 
 (defn ltrim
@@ -187,7 +226,7 @@
   - start: start index
   - stop: stop index
   - options:
-    - pattern: pattern to pack the queue name"
+  - pattern: pattern to pack the queue name"
   [client queue-name start stop & options]
   (let [{:keys [pattern]
          :or {pattern :rq}} options
@@ -202,7 +241,7 @@
   - source-queue: Name of the source queue
   - destination-queue: Name of the destination queue
   - options:
-    - pattern: pattern to pack the queue names"
+  - pattern: pattern to pack the queue names"
   [client source-queue destination-queue & options]
   (let [{:keys [pattern]
          :or {pattern :rq}} options
@@ -219,7 +258,7 @@
   - destination-queue: Name of the destination queue
   - timeout: timeout in seconds
   - options:
-    - pattern: pattern to pack the queue names"
+  - pattern: pattern to pack the queue names"
   [client source-queue destination-queue timeout & options]
   (let [{:keys [pattern]
          :or {pattern :rq}} options
@@ -237,7 +276,7 @@
   - wherefrom: 'LEFT' or 'RIGHT'
   - whereto: 'LEFT' or 'RIGHT'
   - options:
-    - pattern: pattern to pack the queue names"
+  - pattern: pattern to pack the queue names"
   [client source-queue destination-queue wherefrom whereto & options]
   (let [{:keys [pattern]
          :or {pattern :rq}} options

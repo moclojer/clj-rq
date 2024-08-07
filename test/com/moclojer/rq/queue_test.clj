@@ -26,6 +26,7 @@
       (rq-queue/push! client queue-name message :pattern :pending)
       (t/is (= message (rq-queue/pop! client queue-name :pattern :pending))))
 
+
     (t/testing "bpop! left"
       (while (not (nil? (rq-queue/bpop! client queue-name 1 {:direction :l}))))
       (rq-queue/push! client queue-name message)
@@ -40,6 +41,10 @@
         (t/is (= message popped-message))
         (t/is (= 0 (rq-queue/llen client queue-name)))))
 
+    (t/testing "lindex"
+      (rq-queue/push! client queue-name message)
+      (t/is (= message (rq-queue/lindex client queue-name 0))))
+
     (t/testing "lset"
       (while (not (nil? (rq-queue/bpop! client queue-name 1 {:direction :l}))))
       (rq-queue/push! client queue-name message)
@@ -47,18 +52,10 @@
       (rq-queue/lset client queue-name 0 another-message)
       (t/is (= another-message (rq-queue/lindex client queue-name 0)))
       (rq-queue/lset client queue-name 1 message)
-      (t/is (= message (rq-queue/lindex client queue-name 1))))
-
-    (t/testing "lrange"
-      (while (not (nil? (rq-queue/bpop! client queue-name 1 {:direction :l}))))
-      (rq-queue/push! client queue-name message)
-      (rq-queue/push! client queue-name another-message)
-      (t/is (= [message another-message] (rq-queue/lrange client queue-name 0 1))))
-
-    (t/testing "lindex"
-      (rq-queue/lset client queue-name 0 message)
-      (t/is (= message (rq-queue/lindex client queue-name 0))))
-
+      (t/is (= message (rq-queue/lindex client queue-name 1)))
+      (rq-queue/pop! client queue-name :direction :l)
+      (rq-queue/pop! client queue-name :direction :l)
+      )
     (t/testing "lrem"
       (rq-queue/push! client queue-name message)
       (rq-queue/lrem client queue-name 1 message)
@@ -74,6 +71,12 @@
       (rq-queue/push! client queue-name another-message)
       (rq-queue/ltrim client queue-name 1 -1)
       (t/is (= another-message (rq-queue/lindex client queue-name 0))))
+
+    (t/testing "lrange"
+      (while (not (nil? (rq-queue/bpop! client queue-name 1 {:direction :l}))))
+      (rq-queue/push! client queue-name message)
+      (rq-queue/push! client queue-name another-message)
+      (t/is (= [message another-message] (rq-queue/lrange client queue-name 0 1))))
 
     (t/testing "rpoplpush"
       (rq-queue/push! client queue-name message)
