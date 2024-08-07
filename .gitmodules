@@ -1,0 +1,3 @@
+[submodule "vendor/jedis"]
+	path = vendor/jedis
+	url = https://github.com/moclojer/jedis.git
