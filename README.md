@@ -23,6 +23,12 @@ com.moclojer/rq {:mvn/version "0.x.x"}
 
 > see the versions distributed on clojars
 
+## building from source
+
+We build jedis ourselves, in order to build the queue functions directly from reflection.
+
+Simply run `make jedis`, and the library is be built and ready to be linked.
+
 ## example
 
 ```clojure

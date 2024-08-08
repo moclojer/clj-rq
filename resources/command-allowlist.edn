@@ -1,0 +1,4 @@
+#{"lpush" "rpush" "lpop" "rpop"  "brpop"
+  "blpop" "lrange" "lindex" "lset" "lrem"
+  "llen" "linsert" "ltrim" "rpoplpush"
+  "brpoplpush"  "lmove"}
