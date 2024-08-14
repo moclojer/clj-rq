@@ -28,7 +28,7 @@
       (do
         (log/warn "published message, but didn't meet min consumers. archiving..."
                   debug-args)
-        (queue/push! client channel message :pattern :pending)))
+        (queue/lpush client channel message :pattern :pending)))
 
     consumer-met?))
 
@@ -64,9 +64,7 @@
   on each of them."
   [client channel on-msg-fn]
   (loop [message-count 0]
-    (if-let [?message (queue/pop! client channel
-                                  :direction :r
-                                  :pattern :pending)]
+    (if-let [?message (queue/rpop client channel 1 :pattern :pending)]
       (do
         (try
           (on-msg-fn ?message)

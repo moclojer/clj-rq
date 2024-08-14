@@ -11,17 +11,26 @@
         message (utils/gen-message)]
 
     (t/testing "raw"
-      (rq-queue/push! client queue-name message)
-      (rq-queue/push! client queue-name (utils/gen-message))
+      (rq-queue/lpush client queue-name message)
+      (rq-queue/lpush client queue-name (utils/gen-message))
       (t/is (= 2 (rq-queue/llen client queue-name)))
-      (t/is (= message (rq-queue/pop! client queue-name :direction :r))))
+      (t/is (= message (rq-queue/rpop client queue-name 1))))
 
     (t/testing "direction"
-      (rq-queue/push! client queue-name message :direction :r)
-      (t/is (= message (rq-queue/pop! client queue-name :direction :r))))
+      (rq-queue/rpush client queue-name message)
+      (t/is (= message (rq-queue/rpop client queue-name))))
 
     (t/testing "pattern"
-      (rq-queue/push! client queue-name message :pattern :pending)
-      (t/is (= message (rq-queue/pop! client queue-name :pattern :pending))))
+      (rq-queue/lpush client queue-name message :pattern :pending)
+      (t/is (= message (rq-queue/rpop client queue-name :pattern :pending))))
 
     (rq/close-client client)))
+
+(comment
+  (def my-client (rq/create-client "redis://localhost:6379"))
+
+  (.lpush @my-client)
+
+  (rq/close-client my-client)
+  ;;
+  )
