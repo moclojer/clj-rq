@@ -98,8 +98,7 @@
                     :queue-name packed-queue-name
                     :options {:direction direction :pattern pattern}
                     :message message})
-          (edn/read-string message)))))
-
+        (edn/read-string message)))))
 
 (defn lindex
   "Return a element in a specified index
@@ -194,14 +193,13 @@
                       redis.clients.jedis.args.ListPosition/BEFORE
                       redis.clients.jedis.args.ListPosition/AFTER)
         return (.linsert @client packed-queue-name encoded-pos encoded-pivot encoded-message)]
-      (log/debug "inserted in queue"
-                 {:client client
-                  :queue-name queue-name
-                  :msg encoded-message
-                  :opts opts
-                  :return return})
-      return))
-
+    (log/debug "inserted in queue"
+               {:client client
+                :queue-name queue-name
+                :msg encoded-message
+                :opts opts
+                :return return})
+    return))
 
 (defn lrange
   "Return an entire range given min and max indexes
@@ -222,7 +220,6 @@
                 :opts opts
                 :result return})
     (mapv clojure.edn/read-string return)))
-
 
 (defn ltrim
   "Trim a list to the specified range.
@@ -246,8 +243,6 @@
                   :result return})
       return)))
 
-   
-
 (defn rpoplpush
   "Remove the last element in a list and append it to another list.
 
@@ -269,7 +264,6 @@
                 :destination-queue packed-destination-queue
                 :result return})
     return))
-
 
 (defn brpoplpush
   "Remove the last element in a list and append it to another list, blocking if necessary.
@@ -294,8 +288,6 @@
                 :timeout timeout
                 :result result})
     result))
-
-
 
 (defn lmove
   "Atomically return and remove the first/last element of the source list, and push the element as the first/last element of the destination list.

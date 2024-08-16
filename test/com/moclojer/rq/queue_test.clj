@@ -67,7 +67,6 @@
       (rq-queue/pop! client queue-name :direction :l)
       (rq-queue/pop! client queue-name :direction :l))
 
-
     (t/testing "lrange"
       (rq-queue/push! client queue-name message)
       (rq-queue/push! client queue-name another-message)
@@ -75,7 +74,6 @@
         (t/is (= [message another-message] (reverse result))))
       (rq-queue/pop! client queue-name :direction :l)
       (rq-queue/pop! client queue-name :direction :l))
-
 
     (t/testing "ltrim"
       (let [base-message {:test "hello", :my/test2 "123", :foobar ["321"]}
@@ -89,7 +87,6 @@
                    (map #(dissoc % :uuid) result)))))
       (rq-queue/pop! client queue-name :direction :l)
       (rq-queue/pop! client queue-name :direction :l))
-
 
     (t/testing "rpoplpush"
       (rq-queue/push! client queue-name message)
