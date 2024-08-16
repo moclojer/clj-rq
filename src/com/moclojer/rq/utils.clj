@@ -1,4 +1,6 @@
-(ns com.moclojer.rq.utils)
+(ns com.moclojer.rq.utils
+  (:require
+   [clojure.string :as s]))
 
 (defn- pattern->str
   "Adapts given pattern keyword to a know internal pattern. Raises
@@ -21,3 +23,6 @@
 (defn unpack-pattern
   [pattern queue-name]
   (subs queue-name (count (pattern->str pattern))))
+
+
+

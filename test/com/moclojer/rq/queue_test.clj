@@ -54,6 +54,7 @@
       (t/is (= message (rq-queue/lindex client queue-name 1)))
       (rq-queue/pop! client queue-name :direction :l)
       (rq-queue/pop! client queue-name :direction :l))
+
     (t/testing "lrem"
       (rq-queue/push! client queue-name message)
       (rq-queue/lrem client queue-name 1 message)
@@ -61,20 +62,34 @@
 
     (t/testing "linsert"
       (rq-queue/push! client queue-name message)
-      (rq-queue/linsert client queue-name another-message message :pos :before)
-      (t/is (= another-message (rq-queue/lindex client queue-name 0))))
+      (rq-queue/linsert client queue-name message another-message :pos :before)
+      (t/is (= another-message (rq-queue/lindex client queue-name 0)))
+      (rq-queue/pop! client queue-name :direction :l)
+      (rq-queue/pop! client queue-name :direction :l))
 
-    (t/testing "ltrim"
-      (rq-queue/push! client queue-name message)
-      (rq-queue/push! client queue-name another-message)
-      (rq-queue/ltrim client queue-name 1 -1)
-      (t/is (= another-message (rq-queue/lindex client queue-name 0))))
 
     (t/testing "lrange"
-      (while (not (nil? (rq-queue/bpop! client queue-name 1 {:direction :l}))))
       (rq-queue/push! client queue-name message)
       (rq-queue/push! client queue-name another-message)
-      (t/is (= [message another-message] (rq-queue/lrange client queue-name 0 1))))
+      (let [result (rq-queue/lrange client queue-name 0 1)]
+        (t/is (= [message another-message] (reverse result))))
+      (rq-queue/pop! client queue-name :direction :l)
+      (rq-queue/pop! client queue-name :direction :l))
+
+
+    (t/testing "ltrim"
+      (let [base-message {:test "hello", :my/test2 "123", :foobar ["321"]}
+            message (assoc base-message :uuid (java.util.UUID/randomUUID))
+            another-message (assoc base-message :uuid (java.util.UUID/randomUUID))]
+        (rq-queue/push! client queue-name message)
+        (rq-queue/push! client queue-name another-message)
+        (t/is (= "OK" (rq-queue/ltrim client queue-name 1 -1)))
+        (let [result (rq-queue/lrange client queue-name 0 -1)]
+          (t/is (= [(dissoc another-message :uuid)]
+                   (map #(dissoc % :uuid) result)))))
+      (rq-queue/pop! client queue-name :direction :l)
+      (rq-queue/pop! client queue-name :direction :l))
+
 
     (t/testing "rpoplpush"
       (rq-queue/push! client queue-name message)
