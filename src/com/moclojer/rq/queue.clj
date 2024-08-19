@@ -133,7 +133,7 @@
   (let [{:keys [pattern]
          :or {pattern :rq} :as opts} options
         packed-queue-name (utils/pack-pattern pattern queue-name)
-        encoded-message (str (clojure.edn/read-string (str message)))
+        encoded-message (pr-str message)
         return (.lset @client packed-queue-name index encoded-message)]
 
     (log/debug "set in queue"
@@ -160,12 +160,13 @@
   (let [{:keys [pattern]
          :or {pattern :rq}} options
         packed-queue-name (utils/pack-pattern pattern queue-name)
-        return (.lrem @client packed-queue-name cnt (str msg))]
+        encoded-message (pr-str msg)
+        return (.lrem @client packed-queue-name cnt encoded-message)]
 
     (log/debug "removed from queue"
                {:client client
                 :queue-name queue-name
-                :msg (clojure.edn/read-string (str msg))
+                :msg msg
                 :count cnt
                 :return return})
     return))
@@ -187,8 +188,8 @@
          :or {pos :before
               pattern :rq} :as opts} options
         packed-queue-name (utils/pack-pattern pattern queue-name)
-        encoded-message (str (clojure.edn/read-string (str msg)))
-        encoded-pivot (str (clojure.edn/read-string (str pivot)))
+        encoded-message (pr-str msg)
+        encoded-pivot (pr-str pivot)
         encoded-pos (if (= pos :before)
                       redis.clients.jedis.args.ListPosition/BEFORE
                       redis.clients.jedis.args.ListPosition/AFTER)
