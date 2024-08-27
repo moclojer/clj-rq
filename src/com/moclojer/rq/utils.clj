@@ -58,12 +58,21 @@
 (defn- keyword-dec->fn
   [dec]
   (let [json-dec-fn #(json/read-str % :key-fn keyword)
+        array? #(or (seq? %)
+                    (.isArray (class %))
+                    (instance? java.util.ArrayList %))
         fns {:none identity
              :edn edn/read-string
              :json json-dec-fn
-             :array vec
-             :edn-array #(vec (map edn/read-string %))
-             :json-array #(vec (map json-dec-fn %))}]
+             :array #(if (array? %)
+                       (vec %)
+                       [%])
+             :edn-array #(if (array? %)
+                           (vec (map edn/read-string %))
+                           [(edn/read-string %)])
+             :json-array #(if (array? %)
+                            (vec (map json-dec-fn %))
+                            [vec (json-dec-fn %)])}]
     (or (get fns dec)
         (throw (ex-info (str "No decoding " (name dec))
                         {:cause :illegal-argument
