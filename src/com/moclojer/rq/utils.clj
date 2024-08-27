@@ -72,7 +72,7 @@
                            [(edn/read-string %)])
              :json-array #(if (array? %)
                             (vec (map json-dec-fn %))
-                            [vec (json-dec-fn %)])}]
+                            [(json-dec-fn %)])}]
     (or (get fns dec)
         (throw (ex-info (str "No decoding " (name dec))
                         {:cause :illegal-argument
