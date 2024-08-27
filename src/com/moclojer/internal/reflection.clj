@@ -34,37 +34,40 @@
        (reduce-method-overloads)))
 
 (defmacro ->wrap-method
-  [method parameters]
+  [method parameters allowlist]
   (let [wrapped-method (clojure.string/replace method #"[`0-9]" "")
-        param-syms (map #(-> % :name symbol) parameters)]
+        base-doc (str "Wraps redis.clients.jedis.JedisPooled."
+                      wrapped-method)
+        param-syms (map #(-> % :name symbol) parameters)
+        [doc enc dec] (get allowlist method ["" :none :none])]
     `(defn ~(symbol method)
-       ~(str "Wraps redis.clients.jedis.JedisPooled." wrapped-method)
+       ~(str base-doc \newline doc)
 
        ~(-> (into ['client] param-syms)
             (conj '& 'options))
 
        (let [~{:keys ['pattern 'encoding 'decoding]
                :or {'pattern :rq
-                    'encoding :edn
-                    'decoding :edn}} ~'options
-             ~'result ~(seq
-                        (into
-                         [(symbol (str "." wrapped-method)) '@client]
-                         (reduce
-                          (fn [acc par]
-                            (->> (cond
-                                   (= par 'key)
-                                   `(com.moclojer.rq.utils/pack-pattern
-                                     ~'pattern ~par)
+                    'encoding enc
+                    'decoding dec}} ~'options
 
-                                   (= par 'value)
-                                   `(com.moclojer.rq.utils/encode
-                                     ~'encoding ~par)
+             ~'result ~(->> (reduce
+                             (fn [acc par]
+                               (->> (cond
+                                      (= par 'key)
+                                      `(com.moclojer.rq.utils/pack-pattern
+                                        ~'pattern ~par)
 
-                                   :else par)
-                                 (conj acc)))
-                          []
-                          param-syms)))]
+                                      (some #{'value 'string 'args} [par])
+                                      `(com.moclojer.rq.utils/encode
+                                        ~'encoding ~par)
+
+                                      :else par)
+                                    (conj acc)))
+                             []
+                             param-syms)
+                            (into [(symbol (str "." wrapped-method)) '@client])
+                            (seq))]
          (try
            (com.moclojer.rq.utils/decode ~'decoding ~'result)
            (catch ~'Exception ~'e
@@ -72,10 +75,12 @@
              ~'result))))))
 
 (comment
-  (let [[method parameters] (-> redis.clients.jedis.JedisPooled
-                                (get-klazz-methods #{"lpush"})
+  (let [allowlist {"lpush" ["hello" :edn-array :none]}
+        [method parameters] (-> redis.clients.jedis.JedisPooled
+                                (get-klazz-methods (set (keys allowlist)))
                                 first)]
     (clojure.pprint/pprint
-     (macroexpand-1 `(->wrap-method ~method ~parameters))))
+     (macroexpand-1 `(->wrap-method ~method ~parameters ~allowlist))))
+
   ;;
   )

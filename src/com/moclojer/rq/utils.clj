@@ -1,7 +1,8 @@
 (ns com.moclojer.rq.utils
   (:require
    [clojure.data.json :as json]
-   [clojure.edn :as edn]))
+   [clojure.edn :as edn]
+   [clojure.tools.logging :as log]))
 
 (defn- pattern->str
   "Adapts given pattern keyword to a know internal pattern. Raises
@@ -19,10 +20,12 @@
 
 (defn pack-pattern
   [pattern queue-name]
+  (log/debug :packing pattern queue-name)
   (str (pattern->str pattern) queue-name))
 
 (defn unpack-pattern
   [pattern queue-name]
+  (log/debug :unpacking pattern queue-name)
   (subs queue-name (count (pattern->str pattern))))
 
 (defn- keyword-enc->fn
@@ -41,6 +44,7 @@
 
 (defn encode
   [enc message]
+  (log/debug :encoding enc message)
   ((cond
      (keyword? enc) (keyword-enc->fn enc)
      (fn? enc) enc
@@ -68,6 +72,7 @@
 
 (defn decode
   [dec message]
+  (log/debug :decoding dec message)
   ((cond
      (keyword? dec) (keyword-dec->fn dec)
      (fn? dec) dec
