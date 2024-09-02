@@ -59,7 +59,7 @@
   [dec]
   (let [json-dec-fn #(json/read-str % :key-fn keyword)
         array? #(or (seq? %)
-                    (.isArray (class %))
+                    (some-> % class .isArray)
                     (instance? java.util.ArrayList %))
         fns {:none identity
              :edn edn/read-string

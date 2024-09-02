@@ -14,32 +14,33 @@
   {:name (csk/->kebab-case (.getName method))
    :parameters (map unpack-parameter (.getParameters method))})
 
-(defn reduce-method-overloads
-  [methods]
+(defn underload-methods
+  [arities methods]
   (reduce
-   (fn [overloaded-methods {:keys [name parameters]}]
-     (let [overload-count (count
-                           (filter
-                            #(str/starts-with? (key %) name)
-                            overloaded-methods))
-           cur-overload-id (when (> overload-count 0) overload-count)]
-       (assoc overloaded-methods (str name cur-overload-id) parameters)))
+   (fn [underloaded-methods {:keys [name parameters]}]
+     (if (= (count parameters) (get arities name))
+       (assoc underloaded-methods name parameters)
+       underloaded-methods))
    {} methods))
 
 (defn get-klazz-methods
-  [klazz allowlist]
-  (->> (.getMethods klazz)
-       (map unpack-method)
-       (filter #(contains? allowlist (:name %)))
-       (reduce-method-overloads)))
+  [klazz allowmap]
+  (let [allowlist (set (keys allowmap))
+        arities (reduce-kv
+                 (fn [acc k v]
+                   (assoc acc k (first v)))
+                 {} allowmap)]
+    (->> (.getMethods klazz)
+         (map unpack-method)
+         (filter #(contains? allowlist (:name %)))
+         (underload-methods arities))))
 
 (defmacro ->wrap-method
-  [method parameters allowlist]
+  [method parameters allowmap]
   (let [wrapped-method (clojure.string/replace method #"[`0-9]" "")
-        base-doc (str "Wraps redis.clients.jedis.JedisPooled."
-                      wrapped-method)
+        base-doc (str "Wraps redis.clients.jedis.JedisPooled." wrapped-method)
         param-syms (map #(-> % :name symbol) parameters)
-        [doc enc dec] (get allowlist method ["" :none :none])]
+        [_ doc enc dec] (get allowmap method [nil "" :none :none])]
     `(defn ~(symbol method)
        ~(str base-doc \newline doc)
 
@@ -75,12 +76,19 @@
              ~'result))))))
 
 (comment
-  (let [allowlist {"lpush" ["hello" :edn-array :none]}
-        [method parameters] (-> redis.clients.jedis.JedisPooled
-                                (get-klazz-methods (set (keys allowlist)))
-                                first)]
-    (clojure.pprint/pprint
-     (macroexpand-1 `(->wrap-method ~method ~parameters ~allowlist))))
+  (require '[clojure.pprint :refer [pprint]])
+
+  (get-klazz-methods
+   redis.clients.jedis.JedisPooled
+   {"rpop" [2 "hello" :edn-array :none]})
+
+  (let [allowmap {"rpop" [2 "hello" :edn-array :none]}
+        [method parameters] (first
+                             (get-klazz-methods
+                              redis.clients.jedis.JedisPooled
+                              allowmap))]
+    (pprint
+     (macroexpand-1 `(->wrap-method ~method ~parameters ~allowmap))))
 
   ;;
   )
