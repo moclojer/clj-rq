@@ -93,3 +93,5 @@ sequenceDiagram
     Client-->>Logger: log closing client
     Client-->>User: confirm client closure
 ```
+
+Read more about the project [here](docs/README.md).

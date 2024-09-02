@@ -23,6 +23,9 @@
        (atom pool)))))
 
 (defn close-client
-  "Disconnect and close redis client"
+  "Disconnect and close redis client.
+   If no specific client is passed, the global client stored is closed;"
   ([] (close-client *redis-pool*))
   ([client] (.close @client)))
+
+
