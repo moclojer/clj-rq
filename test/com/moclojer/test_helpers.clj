@@ -1,4 +1,4 @@
-(ns com.moclojer.test-utils)
+(ns com.moclojer.test-helpers)
 
 (defn gen-message
   "Generates a fuzzy message"

@@ -2,7 +2,7 @@
   (:require
    [camel-snake-kebab.core :as csk]
    [clojure.string :as str]
-   [com.moclojer.rq.utils :as utils]))
+   [com.moclojer.rq.adapters :as adapters]))
 
 (defn unpack-parameter
   [parameter]
@@ -56,11 +56,11 @@
                              (fn [acc par]
                                (->> (cond
                                       (= par 'key)
-                                      `(com.moclojer.rq.utils/pack-pattern
+                                      `(com.moclojer.rq.adapters/pack-pattern
                                         ~'pattern ~par)
 
                                       (some #{'value 'string 'args} [par])
-                                      `(com.moclojer.rq.utils/encode
+                                      `(com.moclojer.rq.adapters/encode
                                         ~'encoding ~par)
 
                                       :else par)
@@ -70,7 +70,7 @@
                             (into [(symbol (str "." wrapped-method)) '@client])
                             (seq))]
          (try
-           (com.moclojer.rq.utils/decode ~'decoding ~'result)
+           (com.moclojer.rq.adapters/decode ~'decoding ~'result)
            (catch ~'Exception ~'e
              (.printStackTrace ~'e)
              ~'result))))))

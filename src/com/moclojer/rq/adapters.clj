@@ -1,4 +1,4 @@
-(ns com.moclojer.rq.utils
+(ns com.moclojer.rq.adapters
   (:require
    [clojure.data.json :as json]
    [clojure.edn :as edn]

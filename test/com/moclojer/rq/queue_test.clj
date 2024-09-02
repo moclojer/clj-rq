@@ -3,12 +3,12 @@
    [clojure.test :as t]
    [com.moclojer.rq :as rq]
    [com.moclojer.rq.queue :as rq-queue]
-   [com.moclojer.test-utils :as utils]))
+   [com.moclojer.test-helpers :as helpers]))
 
 (t/deftest queue-test
   (let [client (rq/create-client "redis://localhost:6379")
-        message (utils/gen-message)
-        other-message (utils/gen-message)]
+        message (helpers/gen-message)
+        other-message (helpers/gen-message)]
 
     (let [queue-name (str (random-uuid))]
       (t/testing "raw"
@@ -35,7 +35,7 @@
   (dotimes [_ 10]
     (println
      (rq-queue/lpush my-client "my-queue"
-                     [(utils/gen-message)]
+                     [(helpers/gen-message)]
                      {:pattern :pending})
      (first (rq-queue/rpop my-client "my-queue" 1
                            {:pattern :pending}))))
