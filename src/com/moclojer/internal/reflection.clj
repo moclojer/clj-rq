@@ -62,7 +62,8 @@
                                       `(com.moclojer.rq.adapters/pack-pattern
                                         ~'pattern ~par)
 
-                                      (some #{'value 'string 'args} [par])
+                                      (some #{'value 'string
+                                              'args 'pivot} [par])
                                       `(com.moclojer.rq.adapters/encode
                                         ~'encoding ~par)
 
@@ -84,8 +85,8 @@
    {"rpop" ["hello" ["key" "count"]  :edn-array :none]})
 
   (require '[clojure.pprint :refer [pprint]])
-  (let [allowmap {"brpop" ["Left-Pops a message from a queue (blocking)"
-                           ["timeout" "key"] :none :edn-array]}
+  (let [allowmap {"linsert"   ["Inserts a message into a queue in reference to given pivot"
+                               ["key" "where" "pivot" "value"] :edn :none]}
         [method parameters] (first
                              (get-klazz-methods
                               redis.clients.jedis.JedisPooled

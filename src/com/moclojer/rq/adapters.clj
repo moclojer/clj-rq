@@ -2,7 +2,9 @@
   (:require
    [clojure.data.json :as json]
    [clojure.edn :as edn]
-   [clojure.tools.logging :as log]))
+   [clojure.tools.logging :as log])
+  (:import
+   [redis.clients.jedis.args ListPosition]))
 
 (defn- pattern->str
   "Adapts given pattern keyword to a know internal pattern. Raises
@@ -91,3 +93,13 @@
                     :value dec
                     :expected #{keyword? fn?}})))
    message))
+
+(defn ->list-position
+  [pos]
+  (or (get {:before ListPosition/BEFORE
+            :after ListPosition/AFTER}
+           pos)
+      (throw (ex-info (str "No list position named " pos)
+                      {:cause :illegal-argument
+                       :value pos
+                       :expected #{:before :after}}))))
