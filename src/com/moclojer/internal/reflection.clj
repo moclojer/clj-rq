@@ -15,32 +15,35 @@
    :parameters (map unpack-parameter (.getParameters method))})
 
 (defn underload-methods
-  [arities methods]
+  [paramlist methods]
   (reduce
    (fn [underloaded-methods {:keys [name parameters]}]
-     (if (= (count parameters) (get arities name))
-       (assoc underloaded-methods name parameters)
-       underloaded-methods))
+     (let [allowed-params (get paramlist name)
+           param-names (map :name parameters)]
+       (if (and (= (count parameters) (count allowed-params))
+                (every? #(some #{%} param-names) allowed-params))
+         (assoc underloaded-methods name parameters)
+         underloaded-methods)))
    {} methods))
 
 (defn get-klazz-methods
   [klazz allowmap]
   (let [allowlist (set (keys allowmap))
-        arities (reduce-kv
-                 (fn [acc k v]
-                   (assoc acc k (first v)))
-                 {} allowmap)]
+        paramlist (reduce-kv
+                   (fn [acc name method]
+                     (assoc acc name (second method)))
+                   {} allowmap)]
     (->> (.getMethods klazz)
          (map unpack-method)
          (filter #(contains? allowlist (:name %)))
-         (underload-methods arities))))
+         (underload-methods paramlist))))
 
 (defmacro ->wrap-method
   [method parameters allowmap]
   (let [wrapped-method (clojure.string/replace method #"[`0-9]" "")
         base-doc (str "Wraps redis.clients.jedis.JedisPooled." wrapped-method)
         param-syms (map #(-> % :name symbol) parameters)
-        [_ doc enc dec] (get allowmap method [nil "" :none :none])]
+        [doc _ enc dec] (get allowmap method ["" nil :none :none])]
     `(defn ~(symbol method)
        ~(str base-doc \newline doc)
 
@@ -76,13 +79,13 @@
              ~'result))))))
 
 (comment
-  (require '[clojure.pprint :refer [pprint]])
-
   (get-klazz-methods
    redis.clients.jedis.JedisPooled
-   {"rpop" [2 "hello" :edn-array :none]})
+   {"rpop" ["hello" ["key" "count"]  :edn-array :none]})
 
-  (let [allowmap {"rpop" [2 "hello" :edn-array :none]}
+  (require '[clojure.pprint :refer [pprint]])
+  (let [allowmap {"brpop" ["Left-Pops a message from a queue (blocking)"
+                           ["timeout" "key"] :none :edn-array]}
         [method parameters] (first
                              (get-klazz-methods
                               redis.clients.jedis.JedisPooled
