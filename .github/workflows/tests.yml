@@ -29,6 +29,9 @@ jobs:
         distribution: 'adopt'
         java-version: '11'
 
+    - name: Build Jedis dependency
+      run: make jedis
+
     - name: Install clojure cli
       uses: DeLaGuardo/setup-clojure@master
       with:
