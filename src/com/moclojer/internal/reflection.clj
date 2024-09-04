@@ -15,6 +15,8 @@
    :parameters (map unpack-parameter (.getParameters method))})
 
 (defn underload-methods
+  "Given a list of overloaded `methods`, returns each one's parameter
+  list that matches given its `paramlist`."
   [paramlist methods]
   (reduce
    (fn [underloaded-methods {:keys [name parameters]}]
@@ -39,6 +41,9 @@
          (underload-methods paramlist))))
 
 (defmacro ->wrap-method
+  "Wraps given jedis `method` and its respective `parameters` into a
+  common function for this library, which includes, besides the wrapped
+  function itself, options like key pattern and encoding/decoding."
   [method parameters allowmap]
   (let [wrapped-method (clojure.string/replace method #"[`0-9]" "")
         base-doc (str "Wraps redis.clients.jedis.JedisPooled." wrapped-method)
