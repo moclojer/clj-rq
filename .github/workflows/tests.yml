@@ -29,8 +29,8 @@ jobs:
         distribution: 'adopt'
         java-version: '11'
 
-    - name: Build Jedis dependency
-      run: make jedis
+    - name: Clone Submodules
+      run: git submodule update --init --recursive --remote
 
     - name: Install clojure cli
       uses: DeLaGuardo/setup-clojure@master
