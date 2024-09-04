@@ -23,11 +23,22 @@ com.moclojer/rq {:mvn/version "0.x.x"}
 
 > see the versions distributed on clojars
 
-## building from source
+## Building from source
 
-We build jedis ourselves, in order to build the queue functions directly from reflection.
+We build Jedis ourselves to enable building queue functions directly using reflection. This approach ensures full compatibility with our library's features.
 
-Simply run `make jedis`, and the library is be built and ready to be linked.
+### Prerequisites
+
+- Make sure you have Java JDK (version X.X or higher) installed
+- Ensure you have Make installed on your system
+
+### Build Steps
+
+1. Clone the repository: `git clone [repository URL]`
+2. Navigate to the project directory: `cd clj-rq`
+3. Run the build command: `make jedis`
+
+After running `make jedis`, the library will be built and ready to be linked with your project. Linking in this context means that the built Jedis library will be properly referenced and used by clj-rq when you include it in your project.
 
 ## example
 
