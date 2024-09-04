@@ -30,7 +30,7 @@ jobs:
         java-version: '11'
 
     - name: Clone Submodules
-      run: git submodule update --init --recursive --remote
+      run: make jedis
 
     - name: Install clojure cli
       uses: DeLaGuardo/setup-clojure@master
