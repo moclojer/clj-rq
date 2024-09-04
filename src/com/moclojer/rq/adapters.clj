@@ -2,6 +2,7 @@
   (:require
    [clojure.data.json :as json]
    [clojure.edn :as edn]
+   [clojure.string :as str]
    [clojure.tools.logging :as log])
   (:import
    [redis.clients.jedis.args ListPosition]))
@@ -30,7 +31,14 @@
 (defn unpack-pattern
   [pattern queue-name]
   (log/debug :unpacking pattern queue-name)
-  (subs queue-name (count (pattern->str pattern))))
+  (let [prefix (pattern->str pattern)]
+    (if (str/starts-with? queue-name prefix)
+      (subs queue-name (count prefix))
+      (do
+        (log/warn :invalid-prefix
+                  :queue-name queue-name
+                  :expected-prefix prefix)
+        queue-name))))
 
 (def encoding-fns
   {:none identity
