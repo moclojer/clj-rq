@@ -6,19 +6,21 @@
   (:import
    [redis.clients.jedis.args ListPosition]))
 
+(def patterns
+  {:none ""
+   :rq "rq:"
+   :pubsub "rq:pubsub:"
+   :pending "rq:pubsub:pending:"})
+
 (defn- pattern->str
   "Adapts given pattern keyword to a know internal pattern. Raises
   an exception if invalid."
   [pattern]
-  (let [patterns {:none ""
-                  :rq "rq:"
-                  :pubsub "rq:pubsub:"
-                  :pending "rq:pubsub:pending:"}]
-    (or (get-in patterns [pattern])
-        (throw (ex-info (str "No pattern named " pattern)
-                        {:cause :illegal-argument
-                         :value pattern
-                         :expected (keys patterns)})))))
+  (or (get-in patterns [pattern])
+      (throw (ex-info (str "No pattern named " pattern)
+                      {:cause :illegal-argument
+                       :value pattern
+                       :expected (keys patterns)}))))
 
 (defn pack-pattern
   [pattern queue-name]
@@ -30,19 +32,21 @@
   (log/debug :unpacking pattern queue-name)
   (subs queue-name (count (pattern->str pattern))))
 
+(def encoding-fns
+  {:none identity
+   :edn pr-str
+   :json json/write-str
+   :array #(into-array (map pr-str %))
+   :edn-array #(into-array (map pr-str %))
+   :json-array #(into-array (map json/write-str %))})
+
 (defn- keyword-enc->fn
   [enc]
-  (let [fns {:none identity
-             :edn pr-str
-             :json json/write-str
-             :array #(into-array (map pr-str %))
-             :edn-array #(into-array (map pr-str %))
-             :json-array #(into-array (map json/write-str %))}]
-    (or (get fns enc)
-        (throw (ex-info (str "No encoding " (name enc))
-                        {:cause :illegal-argument
-                         :value enc
-                         :expected (keys fns)})))))
+  (or (get encoding-fns enc)
+      (throw (ex-info (str "No encoding " (name enc))
+                      {:cause :illegal-argument
+                       :value enc
+                       :expected (set (keys encoding-fns))}))))
 
 (defn encode
   [enc message]
@@ -57,29 +61,31 @@
                     :expected #{keyword? fn?}})))
    message))
 
-(defn- keyword-dec->fn
-  [dec]
+(def decoding-fns
   (let [json-dec-fn #(json/read-str % :key-fn keyword)
         array? #(or (seq? %)
                     (some-> % class .isArray)
-                    (instance? java.util.ArrayList %))
-        fns {:none identity
-             :edn edn/read-string
-             :json json-dec-fn
-             :array #(if (array? %)
-                       (vec %)
-                       [%])
-             :edn-array #(if (array? %)
-                           (vec (map edn/read-string %))
-                           [(edn/read-string %)])
-             :json-array #(if (array? %)
-                            (vec (map json-dec-fn %))
-                            [(json-dec-fn %)])}]
-    (or (get fns dec)
-        (throw (ex-info (str "No decoding " (name dec))
-                        {:cause :illegal-argument
-                         :value dec
-                         :expected (keys fns)})))))
+                    (instance? java.util.ArrayList %))]
+    {:none identity
+     :edn edn/read-string
+     :json json-dec-fn
+     :array #(if (array? %)
+               (vec %)
+               [%])
+     :edn-array #(if (array? %)
+                   (vec (map edn/read-string %))
+                   [(edn/read-string %)])
+     :json-array #(if (array? %)
+                    (vec (map json-dec-fn %))
+                    [(json-dec-fn %)])}))
+
+(defn- keyword-dec->fn
+  [dec]
+  (or (get decoding-fns dec)
+      (throw (ex-info (str "No decoding " (name dec))
+                      {:cause :illegal-argument
+                       :value dec
+                       :expected (set (keys decoding-fns))}))))
 
 (defn decode
   [dec message]
