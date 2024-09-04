@@ -3,12 +3,12 @@
    [clojure.test :as t]
    [com.moclojer.rq :as rq]
    [com.moclojer.rq.pubsub :as rq-pubsub]
-   [com.moclojer.test-utils :as utils]))
+   [com.moclojer.test-helpers :as helpers]))
 
 (defn build-workers
   [qtt state]
   (let [channels (repeatedly qtt #(str (random-uuid)))
-        messages (repeatedly qtt utils/gen-message)
+        messages (repeatedly qtt helpers/gen-message)
         chans-msgs (zipmap channels messages)]
     {:chans-msgs chans-msgs
      :msgs messages
@@ -18,23 +18,22 @@
                                  (swap! state conj msg))})
                    chans-msgs)}))
 
-;;
 (t/deftest pubsub-test
   (let [client (rq/create-client "redis://localhost:6379")]
 
     (t/testing "archiving/unarchiving"
       (let [channel (str (random-uuid))
-            message (utils/gen-message)
+            message (helpers/gen-message)
             state (atom nil)]
         (rq-pubsub/publish! client channel message)
         (Thread/sleep 500)
-        (rq-pubsub/unarquive-channel! client channel (fn [msg]
-                                                       (reset! state msg)))
+        (rq-pubsub/unarquive-channel! client channel
+                                      (fn [msg] (reset! state msg)))
         (t/is (= message @state))))
 
     (t/testing "unarchiving after subscribing"
       (let [channel (str (random-uuid))
-            message (utils/gen-message)
+            message (helpers/gen-message)
             state (atom nil)]
         (rq-pubsub/publish! client channel message)
         (rq-pubsub/publish! client channel message)

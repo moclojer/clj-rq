@@ -2,21 +2,23 @@
   (:require
    [clojure.edn :as edn]
    [clojure.tools.logging :as log]
-   [com.moclojer.rq.queue :as queue]
-   [com.moclojer.rq.utils :as utils])
+   [com.moclojer.rq.adapters :as adapters]
+   [com.moclojer.rq.queue :as queue])
   (:import
    [redis.clients.jedis JedisPubSub]
    [redis.clients.jedis.exceptions JedisConnectionException]))
 
 (defn publish!
-  "Publish a message to a channel. When `consumer-min` isn't isn't met,
+  "Publish a message to a channel. When `consumer-min` isn't met,
   archives the message. Returns whether or not `consumer-min` was met."
   [client channel message & options]
   (let [{:keys [consumer-min]
          :or {consumer-min 1}
          :as opts} options
-        consumer-count (.publish @client (utils/pack-pattern :pubsub channel)
-                                 (pr-str message))
+        consumer-count (.publish
+                        @client
+                        (adapters/pack-pattern :pubsub channel)
+                        (pr-str message))
         consumer-met? (>= consumer-count consumer-min)
         debug-args {:channel channel
                     :message message
@@ -28,7 +30,7 @@
       (do
         (log/warn "published message, but didn't meet min consumers. archiving..."
                   debug-args)
-        (queue/lpush client channel message :pattern :pending)))
+        (queue/push! client channel [message] {:pattern :pending})))
 
     consumer-met?))
 
@@ -40,9 +42,9 @@
    {} workers))
 
 (defn create-listener
-  "Create a listener for the pubsub. It will be entry point for any published
-  data, being responsible for routing the right consumer. However, that's on
-  the enduser."
+  "Create a listener for the pubsub. It will be entry point for any
+  published data, being responsible for routing the right consumer.
+  However, that's on the enduser."
   [workers]
   (let [handlers-by-channel (group-handlers-by-channel workers)]
     (proxy [JedisPubSub] []
@@ -60,11 +62,13 @@
                       :message message}))))))
 
 (defn unarquive-channel!
-  "Unarquives every pending message from given `channel`, calling `on-msg-fn`
-  on each of them."
+  "Unarquives every pending message from given `channel`, calling
+  `on-msg-fn` on each of them."
   [client channel on-msg-fn]
   (loop [message-count 0]
-    (if-let [?message (queue/rpop client channel 1 :pattern :pending)]
+    (if-let [?message (first
+                       (queue/pop! client channel 1
+                                   {:pattern :pending}))]
       (do
         (try
           (on-msg-fn ?message)
@@ -83,7 +87,9 @@
 
 (defn pack-workers-channels
   [workers]
-  (map #(update % :channel (partial utils/pack-pattern :pubsub)) workers))
+  (map
+   #(update % :channel (partial adapters/pack-pattern :pubsub))
+   workers))
 
 (defn subscribe!
   "Subscribe given `workers` to their respective channels.
@@ -110,19 +116,28 @@
          :as opts} options]
 
     (doseq [channel (map :channel workers)]
-      (unarquive-channel! client channel
-                          #(.onMessage listener (utils/pack-pattern :pubsub channel) %)))
+      (unarquive-channel!
+       client channel
+       #(.onMessage
+         listener
+         (adapters/pack-pattern :pubsub channel)
+         %)))
 
     (let [sub-fn #(try
-                    (.subscribe @client listener (into-array packed-channels))
+                    (.subscribe @client listener
+                                (into-array packed-channels))
+
                     (log/debug "subscribed workers to channels"
                                {:channels packed-channels
                                 :options opts})
+
                     (catch JedisConnectionException e
+
                       (log/warn "subscriber connection got killed. trying to reconnect..."
                                 {:channels packed-channels
                                  :exception e
                                  :ex-message (.getMessage e)})
+
                       (Thread/sleep reconnect-sleep)
                       (apply subscribe! [client workers options])))]
       (if blocking?
