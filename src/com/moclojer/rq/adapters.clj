@@ -17,7 +17,7 @@
   "Adapts given pattern keyword to a known internal pattern. Raises
   an exception if invalid."
   [pattern]
-  (or (getin patterns pattern)
+  (or (get patterns pattern)
       (throw (ex-info (str "No pattern named " pattern)
                       {:cause :illegal-argument
                        :value pattern
