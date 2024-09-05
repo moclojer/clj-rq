@@ -14,7 +14,7 @@
    :pending "rq:pubsub:pending:"})
 
 (defn- pattern->str
-  "Adapts given pattern keyword to a know internal pattern. Raises
+  "Adapts given pattern keyword to a known internal pattern. Raises
   an exception if invalid."
   [pattern]
   (or (get-in patterns [pattern])
