@@ -22,5 +22,6 @@ jobs:
                 CLOJARS_USERNAME: ${{ secrets.CLOJARS_USERNAME }}
                 CLOJARS_PASSWORD: ${{ secrets.CLOJARS_PASSWORD }}
               run: |
+                make jedis
                 clojure -M:dev --report stderr -m com.moclojer.tools.build && \
                 clojure -X:deploy-clojars
