@@ -2,7 +2,7 @@
   (:import
    [redis.clients.jedis JedisPooled]))
 
-(def version "0.1.4")
+(def version "0.2.0")
 
 ;; redis connection pool to be thread safe
 (def
