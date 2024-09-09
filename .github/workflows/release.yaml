@@ -4,11 +4,15 @@ on:
     push:
       tags:
         - 'v*'
+    workflow_dispatch:
+      inputs:
+        version:
+          required: true
 
 jobs:
     clojars:
         runs-on: ubuntu-latest
-        environment: env
+        environment: ${{ github.event.inputs.version }}
         defaults:
             run:
                 shell: bash
