@@ -9,7 +9,7 @@ on:
 jobs:
     clojars:
         runs-on: ubuntu-latest
-        environment: release
+        environment: env
         defaults:
             run:
                 shell: bash
