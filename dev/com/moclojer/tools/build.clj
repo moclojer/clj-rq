@@ -1,8 +1,9 @@
 (ns com.moclojer.tools.build
   (:refer-clojure :exclude [test])
-  (:require [clojure.string :as string]
-            [clojure.tools.build.api :as b]
-            [com.moclojer.rq :as rq]))
+  (:require
+   [clojure.string :as string]
+   [clojure.tools.build.api :as b]
+   [com.moclojer.rq :as rq]))
 
 (def class-dir "target/classes")
 (def jar-file "target/com.moclojer.rq.jar")
@@ -36,7 +37,7 @@
      :main       'com.moclojer.rq
      :version    rq/version
      :basis      basis
-     :ns-compile '[com.moclojer.rq]
+     :ns-compile '[com.moclojer.rq com.moclojer.rq.queue]
      :uber-file  jar-file
      :jar-file   jar-file
      :target     "target"

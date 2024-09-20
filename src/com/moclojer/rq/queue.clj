@@ -1,6 +1,7 @@
 (ns com.moclojer.rq.queue
   (:refer-clojure :exclude [pop! range])
   (:require
+   [clojure.string :as str]
    [com.moclojer.internal.reflection :as reflection]
    [com.moclojer.rq.adapters :as adapters]))
 
@@ -41,7 +42,11 @@
 (doseq [[method parameters] (reflection/get-klazz-methods
                              redis.clients.jedis.JedisPooled
                              allowmap)]
-  (eval `(reflection/->wrap-method ~method ~parameters ~allowmap)))
+  (let [method' (str/replace method #"[`0-9]" "")
+        _base-doc (str "Wraps redis.clients.jedis.JedisPooled." method')]
+    (intern
+     *ns* (symbol method')
+     (eval `(reflection/->wrap-method ~method ~parameters ~allowmap)))))
 
 ;; --- directional ---
 

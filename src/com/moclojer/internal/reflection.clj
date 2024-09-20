@@ -46,12 +46,9 @@
   function itself, options like key pattern and encoding/decoding."
   [method parameters allowmap]
   (let [wrapped-method (clojure.string/replace method #"[`0-9]" "")
-        base-doc (str "Wraps redis.clients.jedis.JedisPooled." wrapped-method)
         param-syms (map #(-> % :name symbol) parameters)
-        [doc _ enc dec] (get allowmap method ["" nil :none :none])]
-    `(defn ~(symbol method)
-       ~(str base-doc \newline doc)
-
+        [_ _ enc dec] (get allowmap method ["" nil :none :none])]
+    `(fn
        ~(-> (into ['client] param-syms)
             (conj '& 'options))
 
