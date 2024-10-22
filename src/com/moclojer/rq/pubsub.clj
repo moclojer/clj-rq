@@ -74,7 +74,7 @@
           (on-msg-fn ?message)
           (catch Exception e
             (.printStackTrace e)
-            (log/error "faled to unarchive channel message"
+            (log/error "failed to unarchive channel message"
                        {:channel channel
                         :message ?message
                         :on-msg-fn on-msg-fn
