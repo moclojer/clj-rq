@@ -2,7 +2,7 @@
   (:import
    [redis.clients.jedis JedisPooled]))
 
-(def version "0.2.1")
+(def version "0.2.2")
 
 ;; redis connection pool to be thread safe
 (def
@@ -27,5 +27,3 @@
    If no specific client is passed, the global client stored is closed;"
   ([] (close-client *redis-pool*))
   ([client] (.close @client)))
-
-
