@@ -5,7 +5,7 @@
   (:import
    [org.apache.commons.pool2.impl GenericObjectPoolConfig]))
 
-;; WARNING: redis needs to be runing.
+;; WARNING: redis needs to be running.
 (t/deftest create-client-test
   (t/testing "redis-client being created"
     (let [client (rq/create-client "redis://localhost:6379")]
