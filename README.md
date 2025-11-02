@@ -10,7 +10,6 @@ RQ (Redis Queue) is a simple Clojure package for queueing jobs and processing th
 
 We distribute the library via [Clojars](https://clojars.org/com.moclojer/rq).
 
-
 [![Clojars Project](https://img.shields.io/clojars/v/com.moclojer/rq.svg)](https://clojars.org/com.moclojer/rq)
 
 ```edn
@@ -166,7 +165,35 @@ The `clj-rq` library provides a set of pub/sub functions that facilitate message
 ```clojure
 (rq-pubsub/unarquive-channel! client "my-channel")
 ```
-  
+
+### pool configuration
+
+`rq/create-client` applies a tuned `GenericObjectPoolConfig` by default (`maxTotal` 128, `minIdle` 16, health checks enabled, etc.).
+You can override these settings by passing an options map as the second argument.
+
+```clojure
+(def *redis-pool*
+  (rq/create-client "redis://localhost:6379/0"
+                    {:pool-config {:max-total 64
+                                   :max-wait-ms 2_000
+                                   :test-on-borrow false}}))
+```
+
+Supported keys inside `:pool-config` include:
+
+- `:max-total`, `:max-idle`, `:min-idle`
+- `:max-wait-ms`, `:time-between-eviction-runs-ms`, `:min-evictable-idle-ms`, `:soft-min-evictable-idle-ms`
+- `:test-on-borrow`, `:test-on-return`, `:test-on-create`, `:test-while-idle`
+- `:num-tests-per-eviction-run`, `:block-when-exhausted`, `:fairness`, `:lifo`
+- `:jmx-enabled`, `:jmx-name-base`, `:jmx-name-prefix`, `:eviction-policy-class-name`, `:evictor-shutdown-timeout-ms`
+
+To skip the tuned defaults and rely on Jedis' own configuration, use `:pool-config :skip`.
+If you want to set values without inheriting the defaults, add `{:inherit-defaults? false ...}` to the `:pool-config` map.
+
+```clojure
+(rq/create-client "redis://localhost:6379/0" {:pool-config :skip})
+```
+
 ## complete example
 
 ```clojure
@@ -234,7 +261,7 @@ sequenceDiagram
     User->>Client: close-client client
     Client-->>Logger: log closing client
     Client-->>User: confirm client closure
-```  
+```
 
 ---
 
