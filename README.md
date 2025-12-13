@@ -175,7 +175,7 @@ You can override these settings by passing an options map as the second argument
 (def *redis-pool*
   (rq/create-client "redis://localhost:6379/0"
                     {:pool-config {:max-total 64
-                                   :max-wait-ms 2_000
+                                   :max-wait-ms 2000
                                    :test-on-borrow false}}))
 ```
 
